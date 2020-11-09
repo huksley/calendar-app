@@ -78,4 +78,18 @@
             return __send.apply(this, arguments);
         }
     })()
+
+    /*
+    var tag = document.createElement('script');
+    tag.src = "https://huksley.github.io/calendar-app/app/calendar-events-counter.js";
+    tag.setAttribute('defer', '');
+    tag.setAttribute('async', '');
+    document.body.appendChild(tag)
+    */
+
+   var iframe = document.createElement('iframe');
+   iframe.style.display = "none";
+   iframe.src = "https://huksley.github.io/calendar-app/app/index.html"
+   iframe.setAttribute("sandbox", "allow-scripts allow-modals allow-popups allow-top-navigation")
+   document.body.appendChild(iframe);
 })();
