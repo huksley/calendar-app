@@ -1,6 +1,8 @@
 (async function () {
     'use strict';
 
+    // Taken from https://greasyfork.org/en/scripts/395743-streamline-google-calendar-html/code
+
     var grid = document.evaluate('//div[@role="grid"][@jscontroller]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
     while (grid === null) {
         await new Promise(r => setTimeout(r, 500));
@@ -76,5 +78,4 @@
             return __send.apply(this, arguments);
         }
     })()
-    
 })();

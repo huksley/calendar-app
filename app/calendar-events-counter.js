@@ -1,14 +1,13 @@
 // Client ID and API key from the Developer Console
-var CLIENT_ID = 'CLIENT_ID_HERE';
-var API_KEY = 'API_KEY_HERE';
+var CLIENT_ID = undefined
+var API_KEY = undefined
 
 // Array of API discovery doc URLs for APIs used by the quickstart
 var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"];
 
 // Authorization scopes required by the API; multiple scopes can be
 // included, separated by spaces.
-var SCOPES = "https://www.googleapis.com/auth/calendar.readonly " +
-    "https://www.googleapis.com/auth/calendar.events.readonly";
+var SCOPES = "https://www.googleapis.com/auth/calendar.readonly"
 
 /**
  *  On load, called to load the auth2 library and API client library.
@@ -22,6 +21,30 @@ function handleClientLoad() {
  *  listeners.
  */
 function initClient() {
+    if (!CLIENT_ID) {
+        CLIENT_ID = localStorage.getItem("GOOGLE_CLIENT_ID")
+    }
+
+    if (!CLIENT_ID) {
+        CLIENT_ID = prompt("Enter Client id")
+        if (CLIENT_ID) {
+            localStorage.setItem("GOOGLE_CLIENT_ID", CLIENT_ID)
+        }
+    }
+
+    if (!API_KEY) {
+        API_KEY = localStorage.getItem("GOOGLE_API_KEY")
+    }
+
+    /*
+    if (!API_KEY) {
+        API_KEY = prompt("Enter API key")
+        if (API_KEY) {
+            localStorage.setItem("GOOGLE_API_KEY", API_KEY)
+        }
+    }
+    */
+
     gapi.client.init({
         apiKey: API_KEY,
         clientId: CLIENT_ID,
@@ -34,8 +57,10 @@ function initClient() {
         // Handle the initial sign-in state.
         updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
     }, function (error) {
-        console.warn(JSON.stringify(error, null, 2));
-    });
+        console.warn("initClient", error.message, JSON.stringify(error, null, 2));
+    }).catch(error => {
+        console.warn("initClient", error.message, JSON.stringify(error, null, 2));
+    })
 }
 
 /**
@@ -44,7 +69,11 @@ function initClient() {
  */
 function updateSigninStatus(isSignedIn) {
     if (isSignedIn) {
-        listUpcomingEvents();
+        try {
+            listUpcomingEvents();
+        } catch (error) {
+            console.warn("updateSigninStatus", error.message, JSON.stringify(error, null, 2));
+        }
     } else {
         handleAuthClick()
     }
@@ -64,6 +93,9 @@ function handleSignoutClick(event) {
     gapi.auth2.getAuthInstance().signOut();
 }
 
+let listFailures = 0
+let listFailuresThreshold = 10
+
 /**
  * Print the summary and start datetime/date of the next ten events in
  * the authorized user's calendar. If no events are found an
@@ -77,44 +109,35 @@ function listUpcomingEvents() {
             const cals = response.result.items
             cals.forEach(async cal => {
                 console.info("Calendar", cal.id)
-                gapi.client.calendar.events.list({
-                    'calendarId': cal.id,
-                    'timeMin': (new Date(Date.now())).toISOString(),
-                    'timeMax': (new Date(Date.now() + 3600000 * hours)).toISOString(),
-                    'showDeleted': false,
-                    'singleEvents': true,
-                    'maxResults': 10,
-                    'orderBy': 'startTime'
-                }).then(function (response) {
-                    var events = response.result.items;
-                    console.info('Upcoming events for ' + cal.id);
-                    let found = 0
-
-                    if (events.length > 0) {
-                        for (i = 0; i < events.length; i++) {
-                            var event = events[i];
-                            var when = event.start.dateTime;
-                            if (!when) {
-                                when = event.start.date;
-                            }
-                            const remind = event.reminders ? event.reminders.useDefault : undefined
-                            console.info(event.summary + ' (' + when + ', ' + remind + ')')
-                            if (remind) {
-                                found++
-                            }
+                gapi.client.calendar.freebusy.query({
+                    timeMin: (new Date(Date.now())).toISOString(),
+                    timeMax: (new Date(Date.now() + 3600000 * hours)).toISOString(),
+                    items: [{ id: cal.id }]
+                }).then(response => {
+                    if (response && response.result &&
+                        response.result.calendars &&
+                        response.result.calendars[cal.id]) {
+                        const busy = response.result.calendars[cal.id].busy
+                        console.info("Busy for", cal.id, busy)
+                        if (busy) {
+                            notifyEvents += busy.length
+                            document.title = "Google Calendar (" + busy.length + ")"
                         }
-                    } else {
-                        console.info('No upcoming events found for ' + cal.id);
                     }
-
-                    notifyEvents += found
-                    document.title = "Google Calendar (" + notifyEvents + ")"
+                }).catch(error => {
+                    console.warn("freebusy.query", error.message, JSON.stringify(error, null, 2));
+                    listFailures++
                 })
-
-
             })
+        }).catch(error => {
+            console.warn("calendarList.list", error.message, JSON.stringify(error, null, 2));
+            listFailures++
         })
     })
+
+    if (listFailures < listFailuresThreshold) {
+        window.setInterval(listUpcomingEvents, 1 * 60000)
+    }
 }
 
 var tag = document.createElement('script');
