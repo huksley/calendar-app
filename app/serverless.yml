@@ -1,0 +1,63 @@
+org: huksley
+app: calendar
+service: calendar
+
+plugins:
+  - serverless-s3-sync
+  - serverless-domain-manager
+  - serverless-plugin-test-helper
+  - serverless-s3-block-public-access
+
+provider:
+  name: aws
+  stage: default
+  runtime: nodejs12.x
+  region: eu-west-1
+  memorySize: 2048
+  timeout: 30
+  apiGateway:
+    shouldStartNameWithService: true
+  versionFunctions: false
+  description: Data provider for desktop calendar
+  environment:
+    NODE_ENV: production
+  tags:
+    project: "calendar"
+    component: "api"
+  stackTags:
+    project: "calendar"
+    component: "api"
+  deploymentBucket:
+    tags:
+      project: "calendar"
+      component: "api"
+
+package:
+  exclude:
+    - "README.md"
+    - ".editorconfig"
+    - "LICENSE.md"
+    - ".git/**"
+    - ".github/**"
+    - ".vscode/**"
+    - ".gitignore"
+    - "node_modules/**"
+    - "test/**"
+
+custom:
+  customDomain:
+    domainName: ${env:CUSTOM_DOMAIN, 'calendar.ruslan.org'}
+    createRoute53Record: true
+    endpointType: regional
+    enabled: ${env:CUSTOM_DOMAIN_ENABLED, 'true'}
+
+functions:
+  api:
+    handler: index.serverless
+    events:
+      - rest:
+          path: /
+          method: GET
+      - rest:
+          path: /{proxy+}
+          method: ANY
