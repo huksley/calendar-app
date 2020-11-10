@@ -2,12 +2,16 @@
   "name": "app",
   "version": "1.0.0",
   "description": "<!-- title: 'AWS Simple HTTP Endpoint example in NodeJS' description: 'This template demonstrates how to make a simple REST API with Node.js running on AWS Lambda and API Gateway using the traditional Serverless Framework.' layout: Doc framework: v1 platform: AWS language: nodeJS authorLink: 'https://github.com/serverless' authorName: 'Serverless, inc.' authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4' -->",
-  "main": "calendar-events-counter.js",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "chamber exec calendar/api -- nodemon -e js,json -i views/ -i public/ -i test/dump/",
+    "lint": "eslint --ext .js .",
+    "prettier": "prettier -c .",
+    "prettify": "prettier -c --write .",
+    "mocha": "mocha"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Ruslan Gainutdinov",
+  "license": "Apache",
   "dependencies": {
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
@@ -17,12 +21,15 @@
     "express-session": "^1.17.1",
     "googleapis": "^64.0.0",
     "helmet": "^4.2.0",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.10.13",
     "nanoid": "^3.1.16",
+    "nocache": "^2.1.0",
     "node-fetch": "^2.6.1",
     "passport": "^0.4.1",
     "passport-google-auth": "^1.0.2",
-    "passport-google-oauth": "^2.0.0"
+    "passport-google-oauth": "^2.0.0",
+    "ramda": "^0.27.1"
   },
   "devDependencies": {
     "eslint": "^7.13.0",

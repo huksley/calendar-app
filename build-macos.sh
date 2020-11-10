@@ -9,6 +9,7 @@ npx nativefier --name "Google Calendar" \
     --icon google-calendar.png \
     --counter \
     --bounce \
-    --internal-urls "calendar\.google\.*?" \
+    --internal-urls "calendar\.google\.com" \
+    --internal-urls "calendar\.ruslan\.org" \
     https://calendar.google.com
 

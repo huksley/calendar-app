@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Desktop Calendar</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="<%= baseUrl %>/styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="jumbotron text-center">
+            <h1 class="text-primary"><span class="fa fa-calendar"></span> Desktop Calendar</h1>
+            
+            <% if (view === "index" && (session.passport === undefined || session.passport.user === undefined)) { %>
+            <p>In order to display following advanced features in desktop app, proceed to login to Google.</p>
+
+            <p>
+            <div class="row">
+                <div class="col col-md-4 align-right"><img class="fat-border" width="120"
+                        src="<%= baseUrl %>/icon-with-badge.png"></div>
+                <div class="col col-md-8 align-left">Displays badge with upcoming events</div>
+            </div>
+
+            <div class="row">
+                <div class="col col-md-4 align-right">
+                    <span class="fat-border inline-block"
+                        style="width: 120px; background-color: black; color: white; font-size: 9px;">
+                        <span class="fa fa-calendar"></span> Business discussion<br />
+                        Attend NOW! 1hr
+                        <br />
+                        <br />
+                        <a class="btn btn-danger" style="font-size: 8px;">Skip</a>
+                        <a class="btn btn-primary" style="font-size: 8px;">Launch</a>
+                    </span></div>
+                <div class="col col-md-8 align-left">Better notifications (WIP)</div>
+            </div>
+            </p>
+            <% } %>
+
+            <% if (view === "index" && session.passport && session.passport.user) { %>
+            <p>
+            <div class="row">
+                <div class="col col-md-6 align-right">Next upcoming events</div>
+                <div class="col col-md-6 align-left">
+                    <span id="upcomingEvents"></span>
+                </div>
+            </div>
+            
+            </p>
+            <% } %>
+
+            <% if (view === "user" && session.passport && session.passport.user) { %>
+            <p>
+            <div class="row">
+                <div class="col col-md-6 align-right">ID</div>
+                <div class="col col-md-6 align-left"><%= session.passport.user.id %></div>
+            </div>
+
+            <div class="row">
+                <div class="col col-md-6 align-right">Name</div>
+                <div class="col col-md-6 align-left"><%= session.passport.user.displayName %></div>
+            </div>
+
+            <div class="row">
+                <div class="col col-md-6 align-right">E-mail</div>
+                <div class="col col-md-6 align-left"><%= session.passport.user.emails[0].value %></div>
+            </div>
+            </p>
+            <% } %>
+
+            <% if (session.passport && session.passport.user) { %>
+            <a href="<%= baseUrl %>/" class="btn btn-primary">
+                <span class="fa fa-calendar"></span> Calendar</a>
+            <a href="<%= baseUrl %>/user" class="btn btn-primary">
+                <span class="fa fa-file"></span> Settings</a>
+            <a href="<%= baseUrl %>/logout" class="btn btn-danger">
+                <span class="fa fa-file"></span> Logout</a>
+            <% } else { %>
+            <a href="<%= baseUrl %>/auth/google" class="btn btn-primary">
+                <span class="fa fa-google"></span> Login with Google</a>
+            <a href="<%= baseUrl %>/logout" class="btn btn-danger">
+                <span class="fa fa-file"></span> Skip</a>
+            <% } %>
+        </div>
+    </div>
+
+
+    <% if (session.passport && session.passport.user && session.passport.user.token) { %>
+    <script async defer>
+        API_TOKEN = "<%= session.passport.user.token %>";
+    </script>
+    <% } else { %>
+    <script async defer>
+        API_TOKEN = undefined;
+    </script>
+    <% } %>
+
+    <script async defer src="<%= baseUrl %>/client.js"></script>
+</body>
+
+</html>
