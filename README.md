@@ -15,6 +15,7 @@ Download ready made package from **Releases** or build locally
 * Clone repo
 * npm install
 * ./build-macosx.sh
+* Go into `Google Calendar-darwin-x64` and copy `Google Calendar.app` into `/Applications`
 
 ### Cloud service
 
