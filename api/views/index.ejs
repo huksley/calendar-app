@@ -87,8 +87,13 @@
         <% } %>
 
         <% if (session.externalSessionId) { %>
+        <% if (session.passport && session.passport.user && session.passport.user.token) { %>
         <a href="<%= baseUrl %>/callback" class="pure-button pure-button-primary">
             <span class="material-icons">open_in_browser</span> Return to calendar</a>
+        <% } else { %>
+        <a href="https://calendar.google.com" class="pure-button pure-button-primary">
+            <span class="material-icons">open_in_browser</span> Return to calendar</a>
+        <% } %>
         <% } %>
 
         <% if (session.passport && session.passport.user) { %>
