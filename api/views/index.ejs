@@ -3,99 +3,106 @@
 
 <head>
     <title>Desktop Calendar</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <link rel="stylesheet" href="<%= baseUrl %>/styles.css">
 </head>
 
 <body>
     <div class="container">
-        <div class="jumbotron text-center">
-            <h1 class="text-primary"><span class="fa fa-calendar"></span> Desktop Calendar</h1>
 
-            <% if (view === "index" && (session.passport === undefined || session.passport.user === undefined)) { %>
-            <p>In order to display following advanced features in desktop app, proceed to login to Google.</p>
+        <h1><span class="material-icons">calendar_today</span> Desktop Calendar</h1>
 
-            <p>
-            <div class="row">
-                <div class="col col-md-4 align-right"><img class="fat-border" width="120"
-                        src="<%= baseUrl %>/icon-with-badge.png"></div>
-                <div class="col col-md-8 align-left">Displays badge with upcoming events</div>
+
+        <% if (view === "index" && (session.passport === undefined || session.passport.user === undefined)) { %>
+        <p>In order to display following advanced features in desktop app, proceed to login to Google.</p>
+
+        <p>
+        <div class="pure-g">
+            <div class="pure-u-1 pure-u-md-1-5 pure-g-pad-1 pure-g-right">
+                <img class="fat-border pure-img" src="<%= baseUrl %>/icon-with-badge.png">
             </div>
-
-            <div class="row">
-                <div class="col col-md-4 align-right">
-                    <span class="fat-border inline-block"
-                        style="width: 120px; background-color: black; color: white; font-size: 9px;">
-                        <span class="fa fa-calendar"></span> Business discussion<br />
-                        Attend NOW! 1hr
-                        <br />
-                        <br />
-                        <a class="btn btn-danger" style="font-size: 8px;">Skip</a>
-                        <a class="btn btn-primary" style="font-size: 8px;">Launch</a>
-                    </span></div>
-                <div class="col col-md-8 align-left">Better notifications (WIP)</div>
-            </div>
-            </p>
-            <% } %>
-
-            <% if (view === "index" && session.passport && session.passport.user) { %>
-            <p>
-            <div class="row">
-                <div class="col col-md-6 align-right">Next upcoming events</div>
-                <div class="col col-md-6 align-left">
-                    <span id="upcomingEvents"></span>
-                </div>
-            </div>
-
-            </p>
-            <% } %>
-
-            <% if (view === "error") { %>
-            <p>
-                Error
-            </p>
-            <% } %>
-
-            <% if (view === "user" && session.passport && session.passport.user) { %>
-            <p>
-            <div class="row">
-                <div class="col col-md-6 align-right">ID</div>
-                <div class="col col-md-6 align-left"><%= session.passport.user.id %></div>
-            </div>
-
-            <div class="row">
-                <div class="col col-md-6 align-right">Name</div>
-                <div class="col col-md-6 align-left"><%= session.passport.user.displayName %></div>
-            </div>
-
-            <div class="row">
-                <div class="col col-md-6 align-right">E-mail</div>
-                <div class="col col-md-6 align-left"><%= session.passport.user.emails[0].value %></div>
-            </div>
-            </p>
-            <% } %>
-
-            <% if (session.passport && session.passport.user) { %>
-            <% if (session.externalSessionId) { %>
-            <a href="<%= baseUrl %>/callback" class="btn btn-primary">
-                <span class="fa fa-calendar"></span> Return to calendar</a>
-            <% } %>
-            <a href="<%= baseUrl %>/" class="btn btn-primary">
-                <span class="fa fa-calendar"></span> Events</a>
-            <a href="<%= baseUrl %>/user" class="btn btn-primary">
-                <span class="fa fa-file"></span> Settings</a>
-            <a href="<%= baseUrl %>/logout" class="btn btn-danger">
-                <span class="fa fa-file"></span> Logout & clear</a>
-            <% } else { %>
-            <a href="https://calendar.google.com" class="btn btn-danger">
-                <span class="fa fa-google"></span> Return to calendar</a>
-            <a href="<%= baseUrl %>/auth/google" class="btn btn-primary">
-                <span class="fa fa-google"></span> Login with Google</a>
-            <a href="<%= baseUrl %>/logout" class="btn btn-danger">
-                <span class="fa fa-file"></span> Logout & clear</a>
-            <% } %>
+            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1">Displays badge with upcoming events</div>
         </div>
+
+        <div class="pure-g">
+            <div class="pure-u-1 pure-u-md-1-5 pure-g-pad-1 pure-g-right">
+                <span class="fat-border inline-block"
+                    style="width: 120px; background-color: black; color: white; font-size: 9px;">
+                    <span class="fa fa-calendar"></span> Business discussion<br />
+                    Attend NOW! 1hr
+                    <br />
+                    <br />
+                    <a class="pure-button pure-button-danger" style="font-size: 8px;">Skip</a>
+                    <a class="pure-button pure-button-primary" style="font-size: 8px;">Launch</a>
+                </span></div>
+            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1">Better notifications (WIP)</div>
+        </div>
+        </p>
+        <% } %>
+
+        <% if (view === "index" && session.passport && session.passport.user) { %>
+        <p>
+        <div class="pure-g">
+            <div class="pure-u-1 pure-u-md-1-5 pure-g-pad-1 pure-g-right">
+                <span>Upcoming events</span>
+            </div>
+            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1">
+                <span id="upcomingEvents"></span>
+            </div>
+        </div>
+
+        </p>
+        <% } %>
+
+        <% if (view === "error") { %>
+        <p>
+            Error
+        </p>
+        <% } %>
+
+        <% if (view === "user" && session.passport && session.passport.user) { %>
+        <p>
+        <div class="pure-g">
+            <div class="pure-u-1 pure-u-md-1-5 pure-g-right pure-g-pad-1">
+                <span>ID</span>
+            </div>
+            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1"><%= session.passport.user.id %></div>
+        </div>
+
+        <div class="pure-g">
+            <div class="pure-u-1 pure-u-md-1-5 pure-g-right pure-g-pad-1">
+                <span>Name</span>
+            </div>
+            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1"><%= session.passport.user.displayName %></div>
+        </div>
+
+        <div class="pure-g">
+            <div class="pure-u-1 pure-u-md-1-5 pure-g-right pure-g-pad-1">
+                <span>E-mail</span>
+            </div>
+            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1"><%= session.passport.user.emails[0].value %></div>
+        </div>
+        </p>
+        <% } %>
+
+        <% if (session.externalSessionId) { %>
+        <a href="<%= baseUrl %>/callback" class="pure-button pure-button-primary">
+            <span class="material-icons">open_in_browser</span> Return to calendar</a>
+        <% } %>
+
+        <% if (session.passport && session.passport.user) { %>
+
+        <a href="<%= baseUrl %>/" class="pure-button pure-button-primary">
+            <span class="material-icons">calendar_today</span> Events</a>
+        <a href="<%= baseUrl %>/user" class="pure-button pure-button-primary">
+            <span class="material-icons">settings</span> Settings</a>
+        <a href="<%= baseUrl %>/logout" class="pure-button pure-button-danger">
+            <span class="material-icons">logout</span> Logout & clear</a>
+        <% } else { %>
+        <a href="<%= baseUrl %>/auth" class="pure-button pure-button-primary">
+            <span class="material-icons">login</span> Login</a>
+        <% } %>
     </div>
 
 

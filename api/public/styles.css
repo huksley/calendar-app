@@ -1,24 +1,63 @@
+@import "https://fonts.googleapis.com/icon?family=Material+Icons";
+@import "https://unpkg.com/purecss@2.0.3/build/pure-min.css";
+@import "https://unpkg.com/purecss@2.0.3/build/grids-responsive-min.css";
+
+html, button, input, select, textarea, .pure-g [class *= "pure-u"] {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  -webkit-font-smoothing: auto;
+  font-weight: 300;
+}
+
 body {
-    margin-top: 2em;
+  margin-top: 2em;
+}
+
+.container {
+  margin: 1em;
+  padding: 1em;
+  background-color: #f9f9f9;
+  border-radius: 0.5em;
+  border: 1px solid #d0d0d0;
 }
 
 .align-right {
-    text-align: right;
+  text-align: right;
 }
 
 .align-left {
-    text-align: left;
+  text-align: left;
 }
 
 .fat-border {
-    border: 4px solid black;
-    border-radius: 4px;
-}
-
-.row {
-    padding: 0.2em;
+  border: 4px solid black;
+  border-radius: 4px;
 }
 
 .inline-block {
-    display: inline-block;
+  display: inline-block;
 }
+
+button .material-icons, a .material-icons {
+  vertical-align: middle;
+}
+
+.pure-g > div.pure-g-pad-1 {
+  box-sizing: border-box;
+}
+
+.pure-g-pad-1 {
+  padding: 0.5em;
+}
+
+@media screen and (min-width: 48em) {
+  .pure-g-right, .pure-g-right img, .pure-g-right span {
+    margin-left: auto;
+    margin-right: 0em;
+    float: right;
+  }
+  
+  .pure-g-left {
+    text-align: left;
+  }
+}
+

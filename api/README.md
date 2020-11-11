@@ -4,7 +4,7 @@ Deploying:
 
 ```
 aws-vault exec wz --no-session -- chamber exec calendar/api -- npx serverless deploy
-````
+```
 
 Running:
 

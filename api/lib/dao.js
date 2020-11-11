@@ -1,12 +1,12 @@
-const logger = require("../common/logger");
-const mongoose = require("mongoose");
-const nanoid = require("nanoid");
-const { context } = require("../common/context");
+const logger = require('./logger')
+const mongoose = require('mongoose')
+const nanoid = require('nanoid')
+const { context } = require('./context')
 
 /**
  * @type {DAO}
  */
-let dao = null;
+let dao = null
 
 class DAO {
   /**
@@ -21,22 +21,22 @@ class DAO {
      * @type {mongoose.Connection}
      * @public
      */
-    this.connection = conn;
+    this.connection = conn
   }
 
   model(name, schema) {
-    return this.conn.model(name, schema);
+    return this.conn.model(name, schema)
   }
 
   close() {
-    logger.verbose("Closing MongoDB connection");
-    this.connection.close();
-    this.connection = null;
-    dao = null;
+    logger.verbose('Closing MongoDB connection')
+    this.connection.close()
+    this.connection = null
+    dao = null
   }
 
   generateId() {
-    return nanoid.nanoid(12);
+    return nanoid.nanoid(12)
   }
 }
 
@@ -47,13 +47,13 @@ class DAO {
  */
 module.exports = {
   create: async function create() {
-    const url = context.env.MONGO_URL;
+    const url = context.env.MONGO_URL
     const mongoUrl = url
-      .replace("$MONGO_PASSWORD", process.env.MONGO_PASSWORD)
-      .replace("$MONGO_USER", process.env.MONGO_USER);
+      .replace('$MONGO_PASSWORD', process.env.MONGO_PASSWORD)
+      .replace('$MONGO_USER', process.env.MONGO_USER)
 
     if (dao === null) {
-      logger.verbose("Connecting to " + mongoUrl);
+      logger.verbose('Connecting to ' + mongoUrl)
       const conn = await mongoose.createConnection(mongoUrl, {
         bufferCommands: false,
         bufferMaxEntries: 0,
@@ -61,12 +61,12 @@ module.exports = {
         useUnifiedTopology: true,
         useCreateIndex: true,
         useFindAndModify: false
-      });
+      })
 
-      dao = new DAO(conn);
-      logger.verbose("Created dao", Object.keys(dao));
+      dao = new DAO(conn)
+      logger.verbose('Created dao', Object.keys(dao))
     }
 
-    return dao;
+    return dao
   }
-};
+}

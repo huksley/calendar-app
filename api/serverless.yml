@@ -19,7 +19,7 @@ provider:
   versionFunctions: false
   environment:
     NODE_ENV: production
-    BASE_URL: "https://calendar.ruslan.org"
+    BASE_URL: 'https://calendar.ruslan.org'
     GOOGLE_CLIENT_ID: ${ssm:/calendar/api/GOOGLE_CLIENT_ID}
     GOOGLE_CLIENT_SECRET: ${ssm:/calendar/api/GOOGLE_CLIENT_SECRET~true}
     SESSION_SECRET: ${ssm:/calendar/api/SESSION_SECRET~true}
@@ -27,27 +27,28 @@ provider:
     MONGO_PASSWORD: ${ssm:/calendar/api/MONGO_PASSWORD~true}
     MONGO_USER: ${ssm:/calendar/api/MONGO_USER~true}
     LOG_VERBOSE: ${env:LOG_VERBOSE, '0'}
+    PASSPORT_STRATEGY: google
   tags:
-    project: "calendar"
-    component: "api"
+    project: 'calendar'
+    component: 'api'
   stackTags:
-    project: "calendar"
-    component: "api"
+    project: 'calendar'
+    component: 'api'
   deploymentBucket:
     tags:
-      project: "calendar"
-      component: "api"
+      project: 'calendar'
+      component: 'api'
 
 package:
   exclude:
-    - "README.md"
-    - ".editorconfig"
-    - "LICENSE.md"
-    - ".git/**"
-    - ".github/**"
-    - ".vscode/**"
-    - ".gitignore"
-    - "test/**"
+    - 'README.md'
+    - '.editorconfig'
+    - 'LICENSE.md'
+    - '.git/**'
+    - '.github/**'
+    - '.vscode/**'
+    - '.gitignore'
+    - 'test/**'
 
 custom:
   customDomain:
@@ -57,15 +58,15 @@ custom:
     enabled: ${env:CUSTOM_DOMAIN_ENABLED, 'true'}
   apigwBinary:
     types:
-      - "image/*"
-      - "application/font*"
-      - "application/pdf"
+      - 'image/*'
+      - 'application/font*'
+      - 'application/pdf'
       # This allows binary conversion without Accept: image/* in request
-      - "*/*"
+      - '*/*'
 
 functions:
   api:
     handler: index.serverless
     events:
       - http: ANY /
-      - http: "ANY /{proxy+}"
+      - http: 'ANY /{proxy+}'
