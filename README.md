@@ -2,6 +2,8 @@
 
 Based on electron (and nativefier) wraps Google Calendar as a native calendar app.
 
+![Screenshot](./desktop-app.png)
+
 ### Features
 
 * MacOS X build
