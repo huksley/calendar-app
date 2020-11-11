@@ -1,44 +1,9 @@
-(async function () {
-    'use strict';
+'use strict';
 
+(async function () {
     // Taken from https://greasyfork.org/en/scripts/395743-streamline-google-calendar-html/code
 
-    var grid = document.evaluate('//div[@role="grid"][@jscontroller]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-    while (grid === null) {
-        await new Promise(r => setTimeout(r, 500));
-        grid = document.evaluate('//div[@role="grid"][@jscontroller]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-    }
-    grid.style.marginLeft = 0; // Normally there's a small margin to the left where the hamburger menu opens up
-
-    var xpathQueries = [
-        '//div[@aria-label="Main drawer"]', // Hamburger menu button
-        '//div[@aria-label="Toggle side panel"]' // Button in the bottom right to open the side panel with Tasks and Keep
-    ];
-
-    /*
-        '//button[@aria-label="Create"]', // Button with cross to create an event
-        '//xxdiv[@aria-label="Support"]/../../../..', // Div with search, support and config buttons
-        '//xxdiv[@aria-label="Previous period"]', // Button to move a month back
-        '//xxdiv[@aria-label="Next period"]', // Button to move a month forward
-        '//xxdiv[starts-with(@aria-label, "Today")]/../..', // Button to jump to today
-        '//xxstar[@aria-label="Google apps"]/../..', // Button with 3x3 dots to open Google Apps menu
-        '//xxspan[contains(text(), "")]', // Arrow next to the week/month selector
-        */
-
-    var query;
-    var selectedElement;
-    for (query of xpathQueries) {
-        console.log(query);
-        selectedElement = null;
-        selectedElement = document.evaluate(query, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-        while (selectedElement === null) {
-            await new Promise(r => setTimeout(r, 500));
-            selectedElement = document.evaluate(query, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-        }
-        selectedElement.style.display = "none";
-    }
-
-    function ftch(method, url) {
+    function ftch(method, url, set) {
         return new Promise((resolve, reject) => {
             function reqListener() {
                 var data = JSON.parse(this.responseText);
@@ -53,9 +18,114 @@
             oReq.onload = reqListener;
             oReq.onerror = reqError;
             oReq.open(method, url, true);
+            if (set) {
+                set(oReq)
+            }
             oReq.send();
         })
     }
+
+    let API_TOKEN = undefined;
+
+    (function () {
+        const rootElementExpression = '//div[@aria-label="Main drawer"]'
+        const drawerExpression = '//div[@aria-label="Main drawer"]'
+
+        async function waitForExpression(expr, seconds) {
+            seconds = seconds || 10
+            let grid = document.evaluate(expr, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            const startTime = new Date().getTime()
+            while (grid === null) {
+                await new Promise(resolve => setTimeout(resolve, 200));
+                grid = document.evaluate(expr, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                if (new Date().getTime() - startTime > seconds * 1000) {
+                    return undefined
+                }
+            }
+            return grid
+        }
+
+        async function createIcon() {
+            waitForExpression(rootElementExpression).then(grid => {
+                if (grid) {
+                    grid.style.marginLeft = 0
+                    waitForExpression(drawerExpression).then(burger => {
+                        const holder = burger.parentElement
+                        holder.removeChild(burger)
+                        const tree = document.createElement("div")
+                        tree.setAttribute("aria-label", "Main drawer")
+                        const button = document.createElement("button")
+                        button.innerHTML = "Set token"
+                        button.addEventListener("click", () => {
+                            if (API_TOKEN === undefined) {
+                                API_TOKEN = localStorage.getItem("API_TOKEN")
+                            }
+
+                            if (API_TOKEN === null) {
+                                const iframe = document.createElement("iframe");
+                                const id = "session-" + new Date().getTime()
+
+                                iframe.onload = function () {
+                                    console.log("The iframe is loaded");
+                                };
+
+                                iframe.onerror = function () {
+                                    console.log("Something wrong happened");
+                                };
+
+                                iframe.id = id
+                                iframe.width = "750"
+                                iframe.height = "650"
+                                iframe.style = "position: absolute; top: 0px; bottom: 0px; margin: auto; z-index: 9999"
+                                iframe.src = "http://localhost:3000/?view=login-iframe&amp;id=" + id;
+                                document.body.appendChild(iframe);
+
+                                window.addEventListener("message", event => {
+                                    const data = JSON.parse(event.data)
+                                    if (data.source === id && data.action === "token") {
+                                        API_TOKEN = data.token
+                                        document.localStorage.setItem("API_TOKEN", API_TOKEN)
+                                        document.body.removeChild(iframe)
+                                    }
+                                })
+                            }
+                        })
+                        tree.appendChild(button)
+                        holder.appendChild(tree)
+                    })
+                }
+            })
+        }
+
+        createIcon()
+    })()
+
+    function updateCounter() {
+        if (!navigator.onLine) {
+            document.title = "Google Calendar"
+            window.setTimeout(() => {
+                updateCounter()
+            }, 5 * 1000)
+            return
+        }
+
+        if (API_TOKEN !== undefined && API_TOKEN !== "") {
+            ftch("GET", "https://calendar.ruslan.org/api/calendar/upcoming", req => {
+                req.setRequestHeader("Authorization", "Bearer " + API_TOKEN)
+            }).then(json => {
+                document.title = "Google Calendar (" + json.count + ")"
+                window.setTimeout(() => {
+                    updateCounter()
+                }, 60 * 1000)
+            }).catch(error => {
+                console.warn(error)
+                API_TOKEN = undefined
+                localStorage.setItem("API_TOKEN", undefined)
+            })
+        }
+    }
+
+    updateCounter();
 
     (function () {
         const __open = XMLHttpRequest.prototype.open;
@@ -78,18 +148,4 @@
             return __send.apply(this, arguments);
         }
     })()
-
-    /*
-    var tag = document.createElement('script');
-    tag.src = "https://huksley.github.io/calendar-app/app/calendar-events-counter.js";
-    tag.setAttribute('defer', '');
-    tag.setAttribute('async', '');
-    document.body.appendChild(tag)
-    */
-
-   var iframe = document.createElement('iframe');
-   iframe.style.display = "none";
-   iframe.src = "https://huksley.github.io/calendar-app/app/index.html"
-   iframe.setAttribute("sandbox", "allow-scripts allow-modals allow-popups allow-top-navigation")
-   document.body.appendChild(iframe);
 })();

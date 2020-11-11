@@ -15,15 +15,37 @@ const nocache = require("nocache");
 const session = require('express-session');
 const passport = require('passport');
 const { google } = require("googleapis")
-const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+const GoogleStrategy = require('passport-google-oauth2').Strategy
 const token = require("./common/token")
+const MongoDBStore = require('connect-mongodb-session')(session);
 
 app.set('view engine', 'ejs');
+
+const url = context.env.MONGO_URL;
+const mongoUrl = url
+  .replace("$MONGO_PASSWORD", process.env.MONGO_PASSWORD)
+  .replace("$MONGO_USER", process.env.MONGO_USER);
+
+var store = new MongoDBStore({
+  uri: mongoUrl,
+  collection: 'CalendarSessions',
+  expires: 1000 * 60 * 60 * 24 * 30, // 30 days in milliseconds
+  connectionOptions: {
+    bufferCommands: false,
+    bufferMaxEntries: 0,
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+    serverSelectionTimeoutMS: 10000
+  }
+});
 
 app.use(session({
   resave: false,
   saveUninitialized: true,
-  secret: process.env.SESSION_SECRET
+  secret: process.env.SESSION_SECRET,
+  store: store
 }));
 
 app.use(
@@ -64,8 +86,12 @@ app.use(cookieParser());
 app.use(
   cors((req, callback) => {
     if (allowlist.indexOf(req.header("Origin")) !== -1) {
+      logger.info("Allowed origin", req.header("Origin"))
       callback(null, { origin: true });
     } else {
+      if (req.header("Origin") !== undefined) {
+        logger.warn("Blocked origin", req.header("Origin"))
+      }
       callback(null, { origin: false });
     }
   })
@@ -75,6 +101,10 @@ app.use(
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get('/', (req, res) => {
+  if (req.query.view === "login-iframe") {
+    logger.info("Handling token for", req.query.id)
+    session.iframe == req.query.id
+  }
   res.render("index", { view: "index", baseUrl, session: req.session })
 });
 
@@ -90,6 +120,24 @@ app.get('/error', (req, res) => {
   res.render("index", { view: "error", baseUrl, session: req.session })
 });
 
+const calendar = google.calendar('v3');
+
+function calendarEvents(oauth2Client, calendarId, hours) {
+  return new Promise((resolve, reject) => calendar.events.list({
+    auth: oauth2Client,
+    calendarId: calendarId,
+    timeMin: (new Date(Date.now())).toISOString(),
+    timeMax: (new Date(Date.now() + 3600000 * hours)).toISOString(),
+    maxResults: 10,
+    singleEvents: true,
+    orderBy: 'startTime'
+  }).then(result => {
+    resolve(result.data.items)
+  }).catch(error => {
+    reject(error)
+  }))
+}
+
 app.get("/api/calendar/upcoming", token.checkToken, (req, res) => {
   token.verifyToken(req, res).then(data => {
     console.info("Token ok", data)
@@ -99,30 +147,33 @@ app.get("/api/calendar/upcoming", token.checkToken, (req, res) => {
       refresh_token: data.refreshToken
     };
 
-    new Promise((resolve, reject) => {
-      var oauth2Client = new google.auth.OAuth2(
-        config.clientID,
-        config.clientSecret,
-        config.callbackURL
-      );
 
-      oauth2Client.credentials = credentials
-      const hours = 4
-      const calendar = google.calendar('v3');
-      calendar.events.list({
-        auth: oauth2Client,
-        calendarId: 'primary',
-        timeMin: (new Date(Date.now())).toISOString(),
-        timeMax: (new Date(Date.now() + 3600000 * hours)).toISOString(),
-        maxResults: 10,
-        singleEvents: true,
-        orderBy: 'startTime'
-      }).then(result => {
-        res.json({
-          events: result.data.items,
-          count: result.data.items.length
-        })
-      }).catch(err => reject(err))
+    var oauth2Client = new google.auth.OAuth2(
+      config.clientID,
+      config.clientSecret,
+      config.callbackURL
+    );
+
+    oauth2Client.credentials = credentials
+    const hours = 4
+
+    calendar.calendarList.list({
+      auth: oauth2Client
+    }).then(async response => {
+      const cals = response.data.items
+      logger.info("Calendars", cals.map(c => c.id))
+      const eventsPerCalendar = await Promise.all(cals.map(async cal => calendarEvents(oauth2Client, cal.id, hours).then(events => ({
+        calendarId: cal.id,
+        events
+      }))))
+      logger.info("Events per calendar", eventsPerCalendar)
+      const events = eventsPerCalendar.map(ce => ce.events).flat(1)
+      res.json({
+        count: events.length,
+        events: events
+      })
+    }).catch(error => {
+      logger.warn("calendarList.list", error.message, JSON.stringify(error, null, 2), error);
     })
   })
 });
@@ -140,9 +191,12 @@ passport.deserializeUser(function (obj, cb) {
   cb(null, obj);
 });
 
-passport.use(new GoogleStrategy(config,
-  function (accessToken, refreshToken, profile, done) {
-    logger.info("Logged in to Google", profile.id)
+passport.use(new GoogleStrategy({
+  ...config,
+  passReqToCallback: true
+},
+  function (req, accessToken, refreshToken, profile, done) {
+    logger.info("Logged in to Google", profile.id, "refreshToken", refreshToken)
     token.signToken({
       id: profile.id,
       accessToken,
@@ -156,10 +210,14 @@ passport.use(new GoogleStrategy(config,
 
 app.get('/auth/google',
   passport.authenticate('google', {
+    // https://developers.google.com/identity/protocols/oauth2/web-server
     scope: ['profile', 'email',
       'https://www.googleapis.com/auth/calendar.readonly',
       'https://www.googleapis.com/auth/calendar.events.readonly'],
-    prompt: "consent"
+    prompt: "consent",
+    accessType: "offline",
+    includeGrantedScopes: true,
+    loginHint: "ruslanfg@gmail.com"
   }));
 
 app.get('/auth/google/callback',

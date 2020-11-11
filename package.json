@@ -1,0 +1,22 @@
+{
+  "name": "gc",
+  "version": "1.0.0",
+  "description": "Using nativefier wraps calendar into the desktop app",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/huksley/calendar-app.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/huksley/calendar-app/issues"
+  },
+  "homepage": "https://github.com/huksley/calendar-app#readme",
+  "devDependencies": {
+    "nativefier": "^10.1.0"
+  }
+}

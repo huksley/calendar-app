@@ -12,3 +12,11 @@ if (events) {
         events.innerHTML = json.count + "<br>" + json.events.map(e => e.summary + "<br>").join("")
     }).catch(error => console.warn(error))
 }
+
+if (IFRAME && API_TOKEN) {
+    window.top.postMessage(JSON.stringify({
+        source: IFRAME,
+        action: "token",
+        token: API_TOKEN
+    }))
+}

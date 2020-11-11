@@ -24,7 +24,7 @@ const User = {
   find: email =>
     new Promise(resolve => {
       dao.create().then(dao => {
-        const User = dao.connection.model("user", UserSchema);
+        const User = dao.connection.model("CalendarUser", UserSchema);
         User.find({ email })
           .exec()
           .then(users => {

@@ -12,7 +12,7 @@
     <div class="container">
         <div class="jumbotron text-center">
             <h1 class="text-primary"><span class="fa fa-calendar"></span> Desktop Calendar</h1>
-            
+
             <% if (view === "index" && (session.passport === undefined || session.passport.user === undefined)) { %>
             <p>In order to display following advanced features in desktop app, proceed to login to Google.</p>
 
@@ -47,7 +47,13 @@
                     <span id="upcomingEvents"></span>
                 </div>
             </div>
-            
+
+            </p>
+            <% } %>
+
+            <% if (view === "error") { %>
+            <p>
+                Error
             </p>
             <% } %>
 
@@ -94,6 +100,16 @@
     <% } else { %>
     <script async defer>
         API_TOKEN = undefined;
+    </script>
+    <% } %>
+
+    <% if (session.iframe) { %>
+    <script async defer>
+        IFRAME = "<%= session.iframe %>";
+    </script>
+    <% } else { %>
+    <script async defer>
+        IFRAME = undefined;
     </script>
     <% } %>
 
