@@ -1,8 +1,8 @@
 service: calendar
 
 plugins:
-  - serverless-domain-manager
   - serverless-apigw-binary
+  - serverless-domain-manager
   - serverless-plugin-test-helper
   - serverless-s3-block-public-access
 
@@ -67,9 +67,5 @@ functions:
   api:
     handler: index.serverless
     events:
-      - http:
-          path: /
-          method: GET
-      - http:
-          path: /{proxy+}
-          method: ANY
+      - http: ANY /
+      - http: "ANY /{proxy+}"

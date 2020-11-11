@@ -77,17 +77,23 @@
             <% } %>
 
             <% if (session.passport && session.passport.user) { %>
+            <% if (session.externalSessionId) { %>
+            <a href="<%= baseUrl %>/callback" class="btn btn-primary">
+                <span class="fa fa-calendar"></span> Return to calendar</a>
+            <% } %>
             <a href="<%= baseUrl %>/" class="btn btn-primary">
-                <span class="fa fa-calendar"></span> Calendar</a>
+                <span class="fa fa-calendar"></span> Events</a>
             <a href="<%= baseUrl %>/user" class="btn btn-primary">
                 <span class="fa fa-file"></span> Settings</a>
             <a href="<%= baseUrl %>/logout" class="btn btn-danger">
-                <span class="fa fa-file"></span> Logout</a>
+                <span class="fa fa-file"></span> Logout & clear</a>
             <% } else { %>
+            <a href="https://calendar.google.com" class="btn btn-danger">
+                <span class="fa fa-google"></span> Return to calendar</a>
             <a href="<%= baseUrl %>/auth/google" class="btn btn-primary">
                 <span class="fa fa-google"></span> Login with Google</a>
             <a href="<%= baseUrl %>/logout" class="btn btn-danger">
-                <span class="fa fa-file"></span> Skip</a>
+                <span class="fa fa-file"></span> Logout & clear</a>
             <% } %>
         </div>
     </div>
@@ -103,13 +109,13 @@
     </script>
     <% } %>
 
-    <% if (session.iframe) { %>
+    <% if (session.externalSessionId && view === "callback") { %>
     <script async defer>
-        IFRAME = "<%= session.iframe %>";
+        EXTERNAL_SESSION_ID = "<%= session.externalSessionId %>";
     </script>
     <% } else { %>
     <script async defer>
-        IFRAME = undefined;
+        EXTERNAL_SESSION_ID = undefined;
     </script>
     <% } %>
 

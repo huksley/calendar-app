@@ -27,3 +27,5 @@ If you don't want to use badge counter, do not connect to the api.
 * https://github.com/jiahaog/nativefier
 * (C) calendar-interface-symbol-tool.png icon made by https://www.flaticon.com/authors/freepik from www.flaticon.com
 
+https://pragli.com/blog/how-to-authenticate-with-google-in-electron/
+

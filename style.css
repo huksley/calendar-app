@@ -1,3 +1,19 @@
-body {
-    border: 1px solid black !important;
+.login-button {
+    margin: 0.3em;
+    padding: 0.5em;
+    border: 1px solid #dadce0;
+    background-color: white;
+    border-radius: 4px;
+    height: 36px;
+    display: inline-block;
+    -webkit-transition: background-color 100ms linear;
+    transition: background-color 100ms linear;
+    font-family: 'Google Sans',Roboto,Arial,sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: .25px;
+}
+
+.login-button:hover {
+    background-color: #f1f3f4;
 }

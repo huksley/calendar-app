@@ -41,7 +41,7 @@
     "nodemon": "^2.0.6",
     "prettier": "^2.1.2",
     "pretty-quick": "^3.1.0",
-    "serverless": "^2.11.1",
+    "serverless": "^1.83.2",
     "serverless-apigw-binary": "^0.4.4",
     "serverless-domain-manager": "^5.1.0",
     "serverless-plugin-test-helper": "^2.4.5",

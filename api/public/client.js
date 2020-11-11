@@ -13,10 +13,6 @@ if (events) {
     }).catch(error => console.warn(error))
 }
 
-if (IFRAME && API_TOKEN) {
-    window.top.postMessage(JSON.stringify({
-        source: IFRAME,
-        action: "token",
-        token: API_TOKEN
-    }))
+if (EXTERNAL_SESSION_ID && API_TOKEN) {
+    window.location = "https://calendar.google.com?calendarApiToken=" + API_TOKEN + "&externalSessionId=" + EXTERNAL_SESSION_ID
 }

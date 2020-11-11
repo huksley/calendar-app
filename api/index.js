@@ -43,7 +43,7 @@ var store = new MongoDBStore({
 
 app.use(session({
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   secret: process.env.SESSION_SECRET,
   store: store
 }));
@@ -101,11 +101,17 @@ app.use(
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get('/', (req, res) => {
-  if (req.query.view === "login-iframe") {
-    logger.info("Handling token for", req.query.id)
-    session.iframe == req.query.id
-  }
   res.render("index", { view: "index", baseUrl, session: req.session })
+});
+
+app.get('/login/:sessionId', (req, res) => {
+  req.session.externalSessionId = req.params.sessionId
+  res.render("index", { view: "index", baseUrl, session: req.session })
+});
+
+
+app.get('/callback', (req, res) => {
+  res.render("index", { view: "callback", baseUrl, session: req.session })
 });
 
 app.get('/auth/success', (req, res) => {
@@ -132,7 +138,7 @@ function calendarEvents(oauth2Client, calendarId, hours) {
     singleEvents: true,
     orderBy: 'startTime'
   }).then(result => {
-    resolve(result.data.items)
+    resolve(result.data.items.filter(event => event.reminders && event.reminders.useDefault))
   }).catch(error => {
     reject(error)
   }))
@@ -179,6 +185,7 @@ app.get("/api/calendar/upcoming", token.checkToken, (req, res) => {
 });
 
 app.get('/logout', function (req, res) {
+  req.session.destroy()
   req.logout();
   res.redirect('/');
 });
@@ -279,7 +286,9 @@ if (process.env.AWS_EXECUTION_ENV !== undefined) {
   app.listen(port, () => logger.info(`API Server listening on port ${port}`));
 }
 
-const serverlessPromise = serverless(app);
+const serverlessPromise = serverless(app, {
+  binary: ['image/png', 'image/jpeg', 'image/x-icon']
+});
 
 module.exports.serverless = async (event, context) => {
   context.callbackWaitsForEmptyEventLoop = false;
