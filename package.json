@@ -4,11 +4,19 @@
   "description": "Using nativefier wraps calendar into the desktop app",
   "main": "script.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build-macos": "bash ./build-macos.sh",
+    "lint": "eslint --ext .js .",
+    "prettier": "prettier -c .",
+    "prettify": "prettier -c --write ."
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/huksley/calendar-app.git"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged; cd api; pretty-quick --staged && npm run lint && npm run test"
+    }
   },
   "author": "",
   "license": "ISC",
@@ -17,8 +25,11 @@
   },
   "homepage": "https://github.com/huksley/calendar-app#readme",
   "devDependencies": {
+    "husky": "^4.3.0",
     "nativefier": "^10.1.5",
-    "passport-local": "^1.0.0"
+    "prettier": "^2.1.2",
+    "pretty-quick": "^3.1.0",
+    "shx": "^0.3.3"
   },
   "dependencies": {}
 }
