@@ -1,9 +1,15 @@
-@import "https://fonts.googleapis.com/icon?family=Material+Icons";
-@import "https://unpkg.com/purecss@2.0.3/build/pure-min.css";
-@import "https://unpkg.com/purecss@2.0.3/build/grids-responsive-min.css";
+@import 'https://fonts.googleapis.com/icon?family=Material+Icons';
+@import 'https://unpkg.com/purecss@2.0.3/build/pure-min.css';
+@import 'https://unpkg.com/purecss@2.0.3/build/grids-responsive-min.css';
 
-html, button, input, select, textarea, .pure-g [class *= "pure-u"] {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+html,
+button,
+input,
+select,
+textarea,
+.pure-g [class*='pure-u'] {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, 'Apple Color Emoji',
+    Arial, sans-serif, 'Segoe UI Emoji', 'Segoe UI Symbol';
   -webkit-font-smoothing: auto;
   font-weight: 300;
 }
@@ -37,7 +43,8 @@ body {
   display: inline-block;
 }
 
-button .material-icons, a .material-icons {
+button .material-icons,
+a .material-icons {
   vertical-align: middle;
 }
 
@@ -50,14 +57,15 @@ button .material-icons, a .material-icons {
 }
 
 @media screen and (min-width: 48em) {
-  .pure-g-right, .pure-g-right img, .pure-g-right span {
+  .pure-g-right,
+  .pure-g-right img,
+  .pure-g-right span {
     margin-left: auto;
     margin-right: 0em;
     float: right;
   }
-  
+
   .pure-g-left {
     text-align: left;
   }
 }
-

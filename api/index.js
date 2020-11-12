@@ -126,7 +126,7 @@ const calendar = google.calendar('v3')
 
 const STRATEGY = process.env.PASSPORT_STRATEGY || 'local'
 
-function calendarEvents(oauth2Client, calendarId, hours) {
+function calendarEvents(oauth2Client, calendarId, hours, email) {
   return new Promise((resolve, reject) =>
     calendar.events
       .list({
@@ -139,8 +139,17 @@ function calendarEvents(oauth2Client, calendarId, hours) {
         orderBy: 'startTime'
       })
       .then(result => {
+        const events = result.data.items
         resolve(
-          result.data.items.filter(event => event.reminders && event.reminders.useDefault)
+          events
+            .filter(event => event.reminders && event.reminders.useDefault)
+            .filter(
+              event =>
+                event.attendees === undefined ||
+                event.attendees.find(
+                  user => user.email === email && user.responseStatus === 'declined'
+                ) === undefined
+            )
         )
       })
       .catch(error => {
@@ -151,17 +160,19 @@ function calendarEvents(oauth2Client, calendarId, hours) {
 
 app.get('/api/calendar/upcoming', token.checkToken, (req, res) => {
   token.verifyToken(req, res).then(data => {
-    if (STRATEGY === "local") {
-      const events = [{
-        summary: "Test event"
-      }]
+    if (STRATEGY === 'local') {
+      const events = [
+        {
+          summary: 'Test event'
+        }
+      ]
       res.json({
         count: events.length,
         events: events
       })
     }
 
-    if (STRATEGY === "google") {
+    if (STRATEGY === 'google') {
       const credentials = {
         access_token: data.accessToken,
         refresh_token: data.refreshToken
@@ -183,12 +194,18 @@ app.get('/api/calendar/upcoming', token.checkToken, (req, res) => {
         .then(async response => {
           const cals = response.data.items
           logger.info(
-            'Calendars',
+            'Calendars for',
+            req.session.passport.user.emails[0].value,
             cals.map(c => c.id)
           )
           const eventsPerCalendar = await Promise.all(
             cals.map(async cal =>
-              calendarEvents(oauth2Client, cal.id, hours).then(events => ({
+              calendarEvents(
+                oauth2Client,
+                cal.id,
+                hours,
+                req.session.passport.user.emails[0].value
+              ).then(events => ({
                 calendarId: cal.id,
                 events
               }))
@@ -202,7 +219,12 @@ app.get('/api/calendar/upcoming', token.checkToken, (req, res) => {
           })
         })
         .catch(error => {
-          logger.warn('calendarList.list', error.message, JSON.stringify(error, null, 2), error)
+          logger.warn(
+            'calendarList.list',
+            error.message,
+            JSON.stringify(error, null, 2),
+            error
+          )
         })
     }
   })
@@ -225,23 +247,25 @@ passport.deserializeUser(function (obj, cb) {
 if (STRATEGY === 'local') {
   passport.use(
     new LocalStrategy(function (username, password, done) {
-      logger.info("username", username, "password", password)
+      logger.info('username', username, 'password', password)
       if (username === 'test' && password === '123') {
         const profile = {
           id: username,
           email: 'test@email.com',
           email_verified: true,
-          displayName: "Tester",
-          emails: [{
-            value: 'test@email.com',
-            email_verified: true
-          }]
+          displayName: 'Tester',
+          emails: [
+            {
+              value: 'test@email.com',
+              email_verified: true
+            }
+          ]
         }
         token
           .signToken({
             id: profile.id,
-            accessToken: "deadbeef",
-            refreshToken: "beefdead"
+            accessToken: 'deadbeef',
+            refreshToken: 'beefdead'
           })
           .then(token => {
             profile.token = token
@@ -253,7 +277,7 @@ if (STRATEGY === 'local') {
     })
   )
 
-  app.get("/auth", (req, res) => res.render("local-login", { baseUrl }))
+  app.get('/auth', (req, res) => res.render('local-login', { baseUrl }))
 
   app.post(
     '/auth/submit',
