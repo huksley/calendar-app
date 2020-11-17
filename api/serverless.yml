@@ -5,6 +5,7 @@ plugins:
   - serverless-domain-manager
   - serverless-plugin-test-helper
   - serverless-s3-block-public-access
+  - serverless-plugin-git-variables
 
 provider:
   name: aws
@@ -14,6 +15,7 @@ provider:
   memorySize: 2048
   timeout: 30
   logRetentionInDays: 30
+# endpointType: REGIONAL
   apiGateway:
     shouldStartNameWithService: true
   versionFunctions: false
@@ -28,6 +30,7 @@ provider:
     MONGO_USER: ${ssm:/calendar/api/MONGO_USER~true}
     LOG_VERBOSE: ${env:LOG_VERBOSE, '0'}
     PASSPORT_STRATEGY: google
+    GIT_TAGS: ${git:tags}
   tags:
     project: 'calendar'
     component: 'api'
@@ -51,6 +54,7 @@ package:
     - 'test/**'
 
 custom:
+  exportGitVariables: false
   customDomain:
     domainName: ${env:CUSTOM_DOMAIN, 'calendar.ruslan.org'}
     createRoute53Record: true
@@ -68,5 +72,5 @@ functions:
   api:
     handler: index.serverless
     events:
-      - http: ANY /
+      - http: GET /
       - http: 'ANY /{proxy+}'

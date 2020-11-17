@@ -28,7 +28,7 @@ const mongoUrl = url
 var store = new MongoDBStore({
   uri: mongoUrl,
   collection: 'CalendarSessions',
-  expires: 1000 * 60 * 60 * 24 * 30, // 30 days in milliseconds
+  expires: 1000 * 60 * 60 * 24 * 30, // 1 day in milliseconds
   connectionOptions: {
     bufferMaxEntries: 0,
     useNewUrlParser: true,
@@ -146,6 +146,7 @@ function calendarEvents(oauth2Client, calendarId, hours, email) {
             .filter(
               event =>
                 event.attendees === undefined ||
+                // I have not declined
                 event.attendees.find(
                   user => user.email === email && user.responseStatus === 'declined'
                 ) === undefined
@@ -166,6 +167,11 @@ app.get('/api/calendar/upcoming', token.checkToken, (req, res) => {
           summary: 'Test event'
         }
       ]
+      logger.info(
+        'Events for',
+        data.sub,
+        events
+      )
       res.json({
         count: events.length,
         events: events
@@ -195,8 +201,7 @@ app.get('/api/calendar/upcoming', token.checkToken, (req, res) => {
           const cals = response.data.items
           logger.info(
             'Calendars for',
-            req.session.passport.user.emails[0].value,
-            cals.map(c => c.id)
+            data.sub
           )
           const eventsPerCalendar = await Promise.all(
             cals.map(async cal =>
@@ -204,14 +209,14 @@ app.get('/api/calendar/upcoming', token.checkToken, (req, res) => {
                 oauth2Client,
                 cal.id,
                 hours,
-                req.session.passport.user.emails[0].value
+                data.sub,
               ).then(events => ({
                 calendarId: cal.id,
                 events
               }))
             )
           )
-          logger.info('Events per calendar', eventsPerCalendar)
+          logger.verbose('Events per calendar', eventsPerCalendar)
           const events = eventsPerCalendar.map(ce => ce.events).flat(1)
           res.json({
             count: events.length,
@@ -264,6 +269,7 @@ if (STRATEGY === 'local') {
         token
           .signToken({
             id: profile.id,
+            sub: profile.email,
             accessToken: 'deadbeef',
             refreshToken: 'beefdead'
           })
@@ -296,10 +302,11 @@ if (STRATEGY === 'google') {
         passReqToCallback: true
       },
       function (req, accessToken, refreshToken, profile, done) {
-        logger.info('Logged in to Google', profile.id, 'refreshToken', refreshToken)
+        logger.info('Logged in to Google', profile.id, profile.emails[0].value)
         token
           .signToken({
             id: profile.id,
+            sub: profile.emails[0].value,
             accessToken,
             refreshToken
           })
@@ -373,18 +380,18 @@ app.use((err, _req, res, _next) => {
 })
 
 process.on('beforeExit', code => {
-  logger.info('NodeJS exiting', code)
+  logger.verbose('NodeJS exiting', code)
 })
 
 process.on('SIGINT', signal => {
-  logger.info('Caught interrupt signal', signal)
+  logger.verbose('Caught interrupt signal', signal)
   process.exit(1)
 })
 
 // Do something when AWS lambda started
 if (process.env.AWS_EXECUTION_ENV !== undefined) {
   // _HANDLER contains specific invocation handler for this NodeJS instance
-  logger.info('AWS Lambda started, handler:', process.env._HANDLER)
+  logger.verbose('AWS Lambda started, handler:', process.env._HANDLER)
 } else {
   app.listen(port, () => logger.info(`API Server listening on port ${port}`))
 }

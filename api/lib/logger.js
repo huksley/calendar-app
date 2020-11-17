@@ -31,10 +31,10 @@ module.exports = {
   isVerbose: !!env.LOG_VERBOSE,
   isDump: !!env.LOG_DUMP,
   info: console.info,
-  audit: env.LOG_AUDIT
+  audit: !!env.LOG_AUDIT
     ? (...args) => console.info.apply(console, ['AUDIT', ...args])
     : () => {},
-  verbose: env.LOG_VERBOSE
+  verbose: !!env.LOG_VERBOSE
     ? (...args) => console.info.apply(console, ['DEBUG', ...args])
     : () => {},
   dump: (filename, contents) => fs.writeFileSync('test/dump/' + filename, contents),

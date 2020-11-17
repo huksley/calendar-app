@@ -140,7 +140,10 @@
         req.setRequestHeader("Authorization", "Bearer " + API_TOKEN);
       })
         .then((json) => {
-          document.title = "Google Calendar (" + json.count + ")";
+          document.title =
+            json.count > 0
+              ? "Google Calendar (" + json.count + ")"
+              : "Google Calendar";
           updateCounterTimer = window.setTimeout(() => {
             updateCounter();
           }, refreshPeriod * 1000);
