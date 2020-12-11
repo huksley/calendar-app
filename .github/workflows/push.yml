@@ -1,0 +1,62 @@
+on:
+  push:
+    branches-ignore:
+      - master
+jobs:
+  deploy:
+    # Includes python 3.8 and Node 12+, Go
+    runs-on: ubuntu-20.04
+    name: "Deploying app..."
+    steps:
+      - name: Env vars
+        run: sh -c set
+      - name: Install pipenv
+        run: sudo pip install pipenv
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Slugify
+        id: slugify
+        uses: ./.github/slugify
+      - name: Show URL
+        run: echo "URL slug is ${{ steps.slugify.outputs.slug }}"
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ env.cache-name }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ env.cache-name }}-
+      - name: Cache python modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-pipenv-modules
+        with:
+          path: ~/.cache/pip
+          key: ${{ env.cache-name }}-${{ hashFiles('Pipfile.lock') }}
+          restore-keys: |
+            ${{ env.cache-name }}-
+      - name: Prepare python modules
+        run: pipenv install
+      - name: Prepare node modules
+        run: npm install
+      - name: Deploy now
+        id: deploy
+        env:
+          AWS_REGION: "eu-west-1"
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: pipenv run deploy --stage "dev-${{ steps.slugify.outputs.slug }}"
+      - name: Output URL
+        id: deployed
+        uses: ./.github/serverless-output-url
+      - name: Show URL
+        run: echo "App deployed at ${{ steps.deployed.outputs.url }}"
+      - name: Comment PR
+        uses: unsplash/comment-on-pr@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          msg: "App deployed at ${{ steps.deployed.outputs.url }}"
+          check_for_duplicate_msg: true

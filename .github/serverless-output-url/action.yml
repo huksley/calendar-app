@@ -1,0 +1,8 @@
+name: "Serverless output URL"
+description: "Obtain URL to the service from serverless outputs"
+outputs:
+  url:
+    description: "Fully qualified URL of the service"
+runs:
+  using: "node12"
+  main: "index.js"
