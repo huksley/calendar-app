@@ -57,7 +57,7 @@ footer > *:first-child {
 }
 
 nav li a,
-nav li  a:visited {
+nav li a:visited {
   text-decoration: none;
   font-weight: bold;
   color: #444;
@@ -65,6 +65,10 @@ nav li  a:visited {
 
 nav li .pure-button {
   color: white !important;
+}
+
+footer a {
+  text-decoration: none;
 }
 
 header > *:last-child,

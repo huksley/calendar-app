@@ -22,6 +22,7 @@ provider:
   environment:
     NODE_ENV: production
     BASE_URL: 'https://calendar.ruslan.org'
+    CONTENTS: ${ssm:/calendar/api/CONTENTS}
     GOOGLE_CLIENT_ID: ${ssm:/calendar/api/GOOGLE_CLIENT_ID}
     GOOGLE_CLIENT_SECRET: ${ssm:/calendar/api/GOOGLE_CLIENT_SECRET~true}
     SESSION_SECRET: ${ssm:/calendar/api/SESSION_SECRET~true}

@@ -35,6 +35,16 @@ const mongoUrl = url
   .replace('$MONGO_PASSWORD', process.env.MONGO_PASSWORD)
   .replace('$MONGO_USER', process.env.MONGO_USER)
 
+const content = (() => {
+  const l = (process.env.CONTENT || "none==none").split(";")
+  const content = {}
+  l.forEach(r => {
+    const [key, value] = r.split("==")
+    content[key] = value
+  })
+  return content
+})();
+
 var store = new MongoDBStore({
   uri: mongoUrl,
   collection: 'CalendarSessions',
@@ -206,6 +216,14 @@ app.get('/', (req, res, next) => {
 
 const knownPage = /faq|changelog|privacy|tos|feedback|support|tos|sandbox|dashboard/g
 
+const replace = (str) => {
+  for (key of Object.keys(content)) {
+    const value = content[key]
+    str = str.replace(new RegExp("%" + key + "%", "g"), value)
+  }
+  return str
+}
+
 app.get('/:page', (req, res, next) => {
   const page = req.params.page
   if (page.match(knownPage)) {
@@ -215,7 +233,7 @@ app.get('/:page', (req, res, next) => {
           view: req.params.page,
           baseUrl,
           session: req.session,
-          content: page.content
+          content: replace(page.content)
         })
       })
       .catch(next)
@@ -234,7 +252,7 @@ app.get('/callback', (req, res) => {
 })
 
 app.get('/auth/success', (req, res) => {
-  res.render('index', { view: 'user', baseUrl, session: req.session })
+  res.render('index', { view: 'dashboard', baseUrl, session: req.session })
 })
 
 app.get('/user', (req, res) => {
@@ -437,9 +455,7 @@ if (STRATEGY === 'google') {
         'profile',
         'email',
         'https://www.googleapis.com/auth/calendar.readonly',
-        'https://www.googleapis.com/auth/calendar.events.readonly',
-        'https://www.googleapis.com/auth/spreadsheets.readonly',
-        'https://www.googleapis.com/auth/drive.readonly'
+        'https://www.googleapis.com/auth/calendar.events.readonly'
       ],
       prompt: 'consent',
       accessType: 'offline',
