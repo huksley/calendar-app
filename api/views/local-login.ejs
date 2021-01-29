@@ -1,32 +1,37 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <title>Desktop Calendar</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="<%= baseUrl %>/styles.css">
-</head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{%= baseUrl %}/styles.css" />
+  </head>
 
-<body>
+  <body>
+    {%- include('header') %}
     <div class="container">
-        <h1><span class="material-icons">login</span> Login</h1>
+      <h1><span class="material-icons">login</span> Login</h1>
 
-        <form action="/auth/submit" method="post" class="pure-form pure-form-stacked">
-            <fieldset>
-                <legend>Test login for local development environment. Not used in production.</legend>
+      <form action="/auth/submit" method="post" class="pure-form pure-form-stacked">
+        <fieldset>
+          <legend>
+            Test login for local development environment. Not used in production.
+          </legend>
 
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" value="test" required />
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" value="test" required />
 
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" value="123" required />
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" value="123" required />
 
-                <button type="submit" class="pure-button pure-button-primary">
-                    <i class="material-icons">login</i> Login</button>
-            </fieldset>
-        </form>
+          <button type="submit" class="pure-button pure-button-primary">
+            <i class="material-icons">login</i> Login
+          </button>
+        </fieldset>
+      </form>
     </div>
 
-</body>
-
+    {%- include('footer') %} {% if (livereload) { %}
+    <script async defer src="http://localhost:35729/livereload.js"></script>
+    {% } %}
+  </body>
 </html>

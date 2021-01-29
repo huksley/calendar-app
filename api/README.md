@@ -1,4 +1,4 @@
-# Calendar API
+# Extension website and calendar API
 
 Deploying:
 
@@ -11,3 +11,5 @@ Running:
 ```
 aws-vault exec wz --no-session -- npm run dev
 ```
+
+

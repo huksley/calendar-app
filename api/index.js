@@ -17,8 +17,18 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy
 const token = require('./lib/token')
 const MongoDBStore = require('connect-mongodb-session')(session)
 const LocalStrategy = require('passport-local').Strategy
+const ejs = require('ejs')
+const prismic = require('prismic-javascript')
+const R = require('ramda')
+const Cookies = require('cookies')
+prismic.dom = require('prismic-dom')
+
+const prismicUrl = 'https://calendar-desktop.cdn.prismic.io/api/v2'
 
 app.set('view engine', 'ejs')
+ejs.rmWhitespace = true
+ejs.openDelimiter = '{'
+ejs.closeDelimiter = '}'
 
 const url = context.env.MONGO_URL
 const mongoUrl = url
@@ -61,6 +71,7 @@ app.use(
 
 app.use(passport.initialize())
 app.use(passport.session())
+app.locals.livereload = !!global.livereload
 
 const baseUrl = process.env.BASE_URL || `http://localhost:${port}`
 
@@ -97,8 +108,120 @@ app.use(
 // Mount the static files directory
 app.use(express.static(path.join(__dirname, 'public')))
 
-app.get('/', (req, res) => {
-  res.render('index', { view: 'index', baseUrl, session: req.session })
+const prismicResolver = doc => {
+  if (doc.last_publication_date === null) {
+    // Draft preview
+    return '/preview?id=' + doc.id + '&uid=' + doc.data.id
+  } else {
+    return doc.uid === 'home' ? '/' : '/' + doc.uid
+  }
+}
+
+const prismicPage = (req, res, page, preview) => {
+  return new Promise((resolve, reject) => {
+    prismic
+      .getApi(prismicUrl, prismicResolver)
+      .then(api => {
+        api
+          .query(
+            prismic.Predicates.at('my.page.id', page),
+            preview
+              ? {
+                  ref: req.cookies['io.prismic.preview']
+                }
+              : undefined
+          )
+          .then(response => {
+            const document = R.head(response.results)
+            if (document !== undefined) {
+              logger.verbose('Got document', document)
+              let content = prismic.dom.RichText.asHtml(document.data.content, R.always('/'))
+              content = content.replace('http:///', '/')
+              content = content.replace('https:///', '/')
+              resolve({ content, document })
+            } else {
+              logger.warn('Cannot find document', page)
+              reject(page)
+            }
+          })
+          .catch(error => {
+            logger.warn('Failed to get document', error)
+            reject(error)
+          })
+      })
+      .catch(error => {
+        logger.warn('Failed to init prismic')
+        reject(error)
+      })
+  })
+}
+
+app.get('/preview', (req, res, next) => {
+  const { token, documentId, id, uid } = req.query
+  if (token === undefined && id !== null) {
+    prismicPage(req, res, uid, true)
+      .then(page => {
+        res.render('index', {
+          view: uid,
+          baseUrl,
+          session: req.session,
+          content: page.content
+        })
+      })
+      .catch(next)
+  } else {
+    prismic
+      .getApi(prismicUrl, R.objOf('req')(req))
+      .then(api => {
+        api
+          .getPreviewResolver(token, documentId)
+          .resolve(prismicResolver, '/')
+          .then(url => {
+            const cookies = new Cookies(req, res)
+            cookies.set(prismic.previewCookie, token, {
+              maxAge: 30 * 60 * 1000,
+              path: '/',
+              httpOnly: false
+            })
+            res.redirect(302, url)
+          })
+          .catch(next)
+      })
+      .catch(next)
+  }
+})
+
+app.get('/', (req, res, next) => {
+  prismicPage(req, res, 'home')
+    .then(page => {
+      res.render('index', {
+        view: 'index',
+        baseUrl,
+        session: req.session,
+        content: page.content
+      })
+    })
+    .catch(next)
+})
+
+const knownPage = /faq|changelog|privacy|tos|feedback|support|tos|sandbox|dashboard/g
+
+app.get('/:page', (req, res, next) => {
+  const page = req.params.page
+  if (page.match(knownPage)) {
+    prismicPage(req, res, page)
+      .then(page => {
+        res.render('index', {
+          view: req.params.page,
+          baseUrl,
+          session: req.session,
+          content: page.content
+        })
+      })
+      .catch(next)
+  } else {
+    next()
+  }
 })
 
 app.get('/login/:sessionId', (req, res) => {
@@ -167,11 +290,7 @@ app.get('/api/calendar/upcoming', token.checkToken, (req, res) => {
           summary: 'Test event'
         }
       ]
-      logger.info(
-        'Events for',
-        data.sub,
-        events
-      )
+      logger.info('Events for', data.sub, events)
       res.json({
         count: events.length,
         events: events
@@ -199,18 +318,10 @@ app.get('/api/calendar/upcoming', token.checkToken, (req, res) => {
         })
         .then(async response => {
           const cals = response.data.items
-          logger.info(
-            'Calendars for',
-            data.sub
-          )
+          logger.info('Calendars for', data.sub)
           const eventsPerCalendar = await Promise.all(
             cals.map(async cal =>
-              calendarEvents(
-                oauth2Client,
-                cal.id,
-                hours,
-                data.sub,
-              ).then(events => ({
+              calendarEvents(oauth2Client, cal.id, hours, data.sub).then(events => ({
                 calendarId: cal.id,
                 events
               }))
@@ -326,7 +437,9 @@ if (STRATEGY === 'google') {
         'profile',
         'email',
         'https://www.googleapis.com/auth/calendar.readonly',
-        'https://www.googleapis.com/auth/calendar.events.readonly'
+        'https://www.googleapis.com/auth/calendar.events.readonly',
+        'https://www.googleapis.com/auth/spreadsheets.readonly',
+        'https://www.googleapis.com/auth/drive.readonly'
       ],
       prompt: 'consent',
       accessType: 'offline',
@@ -364,8 +477,19 @@ if (logger.isVerbose) {
 }
 
 app.use(function (err, req, res, _next) {
-  logger.error(err.stack, req.headers)
-  res.status(500).send({ message: 'Internal server error' })
+  logger.warn(err)
+  if (req.headers.accept && req.headers.accept.indexOf('text/html') >= 0) {
+    res
+      .status(500)
+      .send(
+        'Internal server error' +
+          (global.livereload
+            ? '<script async defer src="http://localhost:35729/livereload.js"></script>'
+            : '')
+      )
+  } else {
+    res.status(500).send({ message: 'Internal server error' })
+  }
 })
 
 // You define error-handling middleware last, after other app.use() and routes calls

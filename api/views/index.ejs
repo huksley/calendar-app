@@ -5,22 +5,50 @@
     <title>Desktop Calendar</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="<%= baseUrl %>/styles.css">
+    <link rel="stylesheet" href="{%= baseUrl %}/styles.css">
 </head>
 
 <body>
+    {%- include('header') %}
     <div class="container">
+        {% if (typeof content !== "undefined") { %}
+        {%- content %}
+        {% } %}
 
-        <h1><span class="material-icons">calendar_today</span> Desktop Calendar</h1>
+        {% if (view === "dashboard" && session.passport && session.passport.user) { %}
+        <p>
+        <div class="pure-g">
+            <div class="pure-u-1 pure-u-md-1-5 pure-g-pad-1 pure-g-right">
+                <span>Upcoming events</span>
+            </div>
+            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1">
+                <span id="upcomingEvents"></span>
+            </div>
+        </div>
+
+        </p>
+
+            {% if (session.passport && session.passport.user) { %}
+            <a href="{%= baseUrl %}/dashboard" class="pure-button pure-button-primary">
+                <span class="material-icons">calendar_today</span> Events</a>
+            <a href="{%= baseUrl %}/user" class="pure-button pure-button-primary">
+                <span class="material-icons">settings</span> Settings</a>
+            <a href="{%= baseUrl %}/logout" class="pure-button pure-button-danger">
+                <span class="material-icons">logout</span> Logout & clear</a>
+            {% } else { %}
+            <a href="{%= baseUrl %}/auth" class="pure-button pure-button-primary">
+                <span class="material-icons">login</span> Login</a>
+            {% } %}
+        {% } %}
 
 
-        <% if (view === "index" && (session.passport === undefined || session.passport.user === undefined)) { %>
+        {% if (view === "index" && (session.passport === undefined || session.passport.user === undefined)) { %}
         <p>In order to display following advanced features in desktop app, proceed to login to Google.</p>
 
         <p>
         <div class="pure-g">
             <div class="pure-u-1 pure-u-md-1-5 pure-g-pad-1 pure-g-right">
-                <img class="fat-border pure-img" src="<%= baseUrl %>/icon-with-badge.png">
+                <img class="fat-border pure-img" src="{%= baseUrl %}/icon-with-badge.png">
             </div>
             <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1">Displays badge with upcoming events</div>
         </div>
@@ -39,99 +67,79 @@
             <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1">Better notifications (WIP)</div>
         </div>
         </p>
-        <% } %>
+        {% } %}
 
-        <% if (view === "index" && session.passport && session.passport.user) { %>
+        {% if (view === "error") { %}
         <p>
-        <div class="pure-g">
-            <div class="pure-u-1 pure-u-md-1-5 pure-g-pad-1 pure-g-right">
-                <span>Upcoming events</span>
-            </div>
-            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1">
-                <span id="upcomingEvents"></span>
-            </div>
-        </div>
-
+            Error occured.
         </p>
-        <% } %>
+        {% } %}
 
-        <% if (view === "error") { %>
-        <p>
-            Error
-        </p>
-        <% } %>
-
-        <% if (view === "user" && session.passport && session.passport.user) { %>
+        {% if (view === "user" && session.passport && session.passport.user) { %}
         <p>
         <div class="pure-g">
             <div class="pure-u-1 pure-u-md-1-5 pure-g-right pure-g-pad-1">
                 <span>ID</span>
             </div>
-            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1"><%= session.passport.user.id %></div>
+            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1">{%= session.passport.user.id %}</div>
         </div>
 
         <div class="pure-g">
             <div class="pure-u-1 pure-u-md-1-5 pure-g-right pure-g-pad-1">
                 <span>Name</span>
             </div>
-            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1"><%= session.passport.user.displayName %></div>
+            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1">{%= session.passport.user.displayName %}</div>
         </div>
 
         <div class="pure-g">
             <div class="pure-u-1 pure-u-md-1-5 pure-g-right pure-g-pad-1">
                 <span>E-mail</span>
             </div>
-            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1"><%= session.passport.user.emails[0].value %></div>
+            <div class="pure-u-1 pure-u-md-4-5 pure-g-pad-1">{%= session.passport.user.emails[0].value %}</div>
         </div>
         </p>
-        <% } %>
+        {% } %}
 
-        <% if (session.externalSessionId) { %>
-        <% if (session.passport && session.passport.user && session.passport.user.token) { %>
-        <a href="<%= baseUrl %>/callback" class="pure-button pure-button-primary">
+        {% if (session.externalSessionId) { %}
+        {% if (session.passport && session.passport.user && session.passport.user.token) { %}
+        <a href="{%= baseUrl %}/callback" class="pure-button pure-button-primary">
             <span class="material-icons">open_in_browser</span> Return to calendar</a>
-        <% } else { %>
+        {% } else { %}
         <a href="https://calendar.google.com" class="pure-button pure-button-primary">
             <span class="material-icons">open_in_browser</span> Return to calendar</a>
-        <% } %>
-        <% } %>
-
-        <% if (session.passport && session.passport.user) { %>
-
-        <a href="<%= baseUrl %>/" class="pure-button pure-button-primary">
-            <span class="material-icons">calendar_today</span> Events</a>
-        <a href="<%= baseUrl %>/user" class="pure-button pure-button-primary">
-            <span class="material-icons">settings</span> Settings</a>
-        <a href="<%= baseUrl %>/logout" class="pure-button pure-button-danger">
-            <span class="material-icons">logout</span> Logout & clear</a>
-        <% } else { %>
-        <a href="<%= baseUrl %>/auth" class="pure-button pure-button-primary">
-            <span class="material-icons">login</span> Login</a>
-        <% } %>
+        {% } %}
+        {% } %}
     </div>
 
 
-    <% if (session.passport && session.passport.user && session.passport.user.token) { %>
+    {% if (session.passport && session.passport.user && session.passport.user.token) { %}
     <script async defer>
-        API_TOKEN = "<%= session.passport.user.token %>";
+        API_TOKEN = "{%= session.passport.user.token %}";
     </script>
-    <% } else { %>
+    {% } else { %}
     <script async defer>
         API_TOKEN = undefined;
     </script>
-    <% } %>
+    {% } %}
 
-    <% if (session.externalSessionId && view === "callback") { %>
+    {% if (session.externalSessionId && view === "callback") { %}
     <script async defer>
-        EXTERNAL_SESSION_ID = "<%= session.externalSessionId %>";
+        EXTERNAL_SESSION_ID = "{%= session.externalSessionId %}";
     </script>
-    <% } else { %>
+    {% } else { %}
     <script async defer>
         EXTERNAL_SESSION_ID = undefined;
     </script>
-    <% } %>
+    {% } %}
 
-    <script async defer src="<%= baseUrl %>/client.js"></script>
+    <script async defer src="{%= baseUrl %}/client.js"></script>
+
+    {% if (livereload) { %}
+        <script async defer src="http://localhost:35729/livereload.js"></script>
+        <script async defer src="https://static.cdn.prismic.io/prismic.js?new=true&repo=calendar-desktop"></script>
+    {% } %}
+
+    {%- include('footer') %}
 </body>
 
 </html>

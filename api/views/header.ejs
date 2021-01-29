@@ -1,0 +1,19 @@
+<header>
+  <h1>
+    <a href="/"><span class="material-icons">calendar_today</span> Desktop Calendar</a>
+  </h1>
+
+  <nav class="menu">
+    <ul>
+      <li class="menu"><a href="/changelog">Changes</a></li>
+      <li class="menu"><a href="/privacy">Privacy</a></li>
+      <li class="menu"><a href="/faq">FAQ</a></li>
+      <li class="menu"><a href="/support">Help</a></li>
+      {% if (typeof session != "undefined" && session.passport && session.passport.user) { %}
+      <li><a href="/dashboard" class="pure-button pure-button-primary">My dashboard</a></li>
+      {% } else { %}
+      <li><a href="/auth" class="pure-button pure-button-primary">Login</a></li>
+      {% } %}
+    </ul>
+  </nav>
+</header>
