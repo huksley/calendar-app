@@ -7,6 +7,7 @@
     "test": "true",
     "dev": "aws-vault exec calendar-api -- chamber exec calendar/api -- nodemon -r ./livereload -e js,json -i views/ -i public/ -i test/dump/",
     "deploy": "aws-vault exec calendar-api --no-session -- serverless deploy",
+    "serverless": "aws-vault exec calendar-api --no-session -- serverless",
     "lint": "eslint --ext .js .",
     "prettier": "prettier -c .",
     "prettify": "prettier -c --write .",

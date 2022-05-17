@@ -11,4 +11,8 @@ npx nativefier --name "Google Calendar" \
     --bounce \
     --user-agent "Mozilla/5.0 (Windows NT 10.0; rv:74.0) Gecko/20100101 Firefox/74.0" \
     --internal-urls "(calendar\.google\.*?)|(calendar\.ruslan\.org)|(localhost:3000)|(accounts\.google\.com)" \
+    --strict-internal-urls \
+    --app-copyright "Google Inc" \
+    --app-version "0.1.0" \
+    --fast-quit \
     https://calendar.google.com

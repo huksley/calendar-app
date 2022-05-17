@@ -18,3 +18,11 @@
 .login-button:hover {
   background-color: #f1f3f4;
 }
+
+div[aria-label="Side panel"] {
+  display: none;
+}
+
+div[aria-label="Google apps"] {
+  display: none;
+}

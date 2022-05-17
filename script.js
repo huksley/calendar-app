@@ -90,6 +90,33 @@
     return grid;
   }
 
+  const waitForSelector = async (root, query, ms) => {
+    root = root || document;
+    ms = ms || 10000;
+    let e = undefined;
+    try {
+      e = root.querySelector(query) || undefined;
+      const startTime = Date.now();
+      while (e === undefined) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        e = root.querySelector(query) || undefined;
+        if (e === undefined && Date.now() - startTime > ms) {
+          console.warn("Timed out trying to find query selector", query);
+          return undefined;
+        }
+      }
+    } catch (error) {
+      console.warn(
+        "Failed to find query selector",
+        query,
+        error.message,
+        error
+      );
+    }
+    console.info("Found", query, e);
+    return e;
+  };
+
   async function createIcon() {
     waitForExpression(rootElementExpression).then((grid) => {
       if (grid) {
@@ -171,17 +198,17 @@
   (function () {
     const __open = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function (method, url, async) {
-      console.info("XHR open", method, url);
       this.__url = url;
       this.__method = method;
-
       this.addEventListener("load", function () {
         this.__response_payload = this.responseText;
         console.info(
           "XHR",
           this.__method,
           this.__url,
+          "payload",
           this.__request_payload,
+          "response",
           this.__response_payload
         );
       });
@@ -190,9 +217,34 @@
     };
 
     const __send = XMLHttpRequest.prototype.send;
-    XMLHttpRequest.prototype.send = function (payload, url, async) {
+    XMLHttpRequest.prototype.send = function (payload) {
       this.__request_payload = payload;
       return __send.apply(this, arguments);
     };
   })();
+
+  const appDocument =
+    typeof unsafeWindow === "undefined"
+      ? window.document
+      : unsafeWindow.document;
+
+  waitForSelector(appDocument, "[role='tablist']").then((sel) => {
+    if (sel) sel.parentNode.parentNode.style.display = "none";
+  });
+
+  waitForSelector(appDocument, "[aria-label='Hide side panel']").then((sel) => {
+    if (sel) sel.parentNode.style.display = "none";
+  });
+
+  waitForSelector(appDocument, "[aria-label='Show side panel']").then((sel) => {
+    if (sel) sel.parentNode.style.display = "none";
+  });
+
+  waitForSelector(appDocument, "[aria-label='Google apps']").then((sel) => {
+    if (sel) sel.style.display = "none";
+  });
+
+  waitForSelector(appDocument, "[aria-label='Main drawer']").then((sel) => {
+    if (sel) sel.style.display = "none";
+  });
 })();

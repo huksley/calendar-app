@@ -59,7 +59,7 @@ custom:
   customDomain:
     domainName: ${env:CUSTOM_DOMAIN, 'calendar.ruslan.org'}
     createRoute53Record: true
-    endpointType: regional
+    endpointType: edge
     enabled: ${env:CUSTOM_DOMAIN_ENABLED, 'true'}
   apigwBinary:
     types:
